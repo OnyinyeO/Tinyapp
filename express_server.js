@@ -61,3 +61,9 @@ const generateRandomString = () => {
   }
   return result;
 };
+
+app.post('/urls/:id/delete', (req, res) => {
+  const id = req.params.id;
+  delete urlDatabase[id];
+  res.redirect('/urls');
+});
