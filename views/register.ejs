@@ -1,11 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Bootstrap CSS -->
     <link
@@ -14,39 +11,35 @@
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-    <title>TinyApp</title>
+    <title>User Registration</title>
   </head>
   <body>
-    <%- include('partials/_header') %>
-    <main style="margin: 1em">
-      <h3>My URLs</h3>
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Short URL ID</th>
-            <th scope="col">Long URL</th>
-            <th scope="col">Edit</th>
-            <th scope="col">Delete</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% for (let id in urls) { %>
-          <tr>
-            <td><%= id %></td>
-            <td><%= urls[id] %></td>
-            <td>
-              <a href="/urls/<%= id %>">Edit</a>
-            </td>
-            <td>
-              <form method="POST" action="/urls/<%= id %>/delete">
-                <button type="submit">Delete</button>
-              </form>
-            </td>
-          </tr>
-          <% } %>
-        </tbody>
-      </table>
-    </main>
+    <% include('partials/_header') %>
+    <form style="margin: 1em" method="POST" action="/register">
+      <h1>Create Account</h1>
+      <label for="email">Email Address:</label>
+      <input
+        class="form-control"
+        type="email"
+        id="email"
+        name="email"
+        placeholder="Enter email"
+        required
+      />
+      <br />
+      <label for="password">Password:</label>
+      <input
+        class="form-control"
+        type="password"
+        id="password"
+        name="password"
+        placeholder="Enter password"
+        required
+      />
+      <br />
+      <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
