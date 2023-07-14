@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const cookieParser = require('cookie-parser');
 
 const app = express();
@@ -97,6 +98,7 @@ app.get('/register', (req, res) => {
 
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const userId = generateRandomString();
 
   if (email === '' || password === '') {
@@ -113,11 +115,10 @@ app.post('/register', (req, res) => {
   const newUser = {
     id: userId,
     email,
-    password,
+    password: hashedPassword,
   };
 
   users[userId] = newUser;
-  console.log(users);
 
   res.cookie('user_id', userId);
   res.redirect('/urls');
@@ -126,6 +127,7 @@ app.post('/register', (req, res) => {
 app.get('/login', (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id],
+    invalidLogin: false,
   };
   res.render('login', templateVars);
 });
@@ -145,12 +147,22 @@ app.post('/urls/:id', (req, res) => {
 
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-  console.log(email);
+
   const user = getUserByEmail(email);
-  console.log(user);
-  if (!user || user.password !== password) {
-    res.status(403).send('Invalid email or password');
-    return;
+  if (!user || !user.password) {
+    const templateVars = {
+      user: users[req.cookies.user_id],
+      invalidLogin: true,
+    };
+    return res.render('login', templateVars);
+  }
+  const isPasswordCorrect = bcrypt.compareSync(password, user.password);
+  if (!isPasswordCorrect) {
+    const templateVars = {
+      user: users[req.cookies.user_id],
+      invalidLogin: true,
+    };
+    return res.render('login', templateVars);
   }
   res.cookie('user_id', user.id);
   res.redirect('/urls');

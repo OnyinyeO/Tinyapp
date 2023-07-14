@@ -35,7 +35,7 @@
         <label for="password">Password:</label>
         <input
           class="form-control"
-          type="text"
+          type="password"
           name="password"
           placeholder=" Password"
           style="width: 300px"
@@ -47,6 +47,11 @@
       </div>
       <br />
       <button type="submit" class="btn btn-primary">Login</button>
+      <% if (invalidLogin) { %>
+      <span class="nav-item nav-link" style="color: red"
+        >Invalid email or password</span
+      >
+      <% } %>
     </form>
 
     <!-- Bootstrap JS -->
