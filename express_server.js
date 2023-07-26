@@ -10,11 +10,13 @@ const users = {
     id: 'userRandomID',
     email: 'user@example.com',
     password: 'purple-monkey-dinosaur',
+    urls: [],
   },
   user2RandomID: {
     id: 'user2RandomID',
     email: 'user2@example.com',
     password: 'dishwasher-funk',
+    urls: [],
   },
 };
 
@@ -44,6 +46,7 @@ const urlDatabase = {
   b2xVn2: 'http://www.lighthouselabs.ca',
   '9sm5xK': 'http://www.google.com',
 };
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -56,10 +59,6 @@ app.get('/', (req, res) => {
     urls: urlDatabase,
     user: users[req.cookies.user_id],
   });
-});
-
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
 });
 
 app.get('/urls.json', (req, res) => {
@@ -85,6 +84,11 @@ app.get('/urls/:id', (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
+  const urls = users[req.cookies.user_id]?.urls || [];
+  for (let i = 0; i < urls.length; i++) {
+    const shortUrl = urls[i];
+    shortUrl in urlDatabase && delete urlDatabase[shortUrl];
+  }
   res.clearCookie('user_id');
   res.redirect('/');
 });
@@ -116,6 +120,7 @@ app.post('/register', (req, res) => {
     id: userId,
     email,
     password: hashedPassword,
+    urls: [],
   };
 
   users[userId] = newUser;
@@ -171,8 +176,12 @@ app.post('/login', (req, res) => {
 app.post('/urls', (req, res) => {
   const { longURL } = req.body;
   const shortURL = generateRandomString();
-
+  users[req.cookies.user_id]?.urls?.push(shortURL);
   urlDatabase[shortURL] = longURL;
 
   res.redirect(`/urls/${shortURL}`);
+});
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
