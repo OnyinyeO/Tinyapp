@@ -207,6 +207,142 @@ app.post('/urls', (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
+// Redirect '/' to '/urls' when a user is logged in, and to '/login' when not logged in
+app.get('/', (req, res) => {
+  if (users[req.cookies.user_id]) {
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login');
+  }
+});
+
+// Return a relevant error message on '/urls' if a user is not logged in
+app.get('/urls', (req, res) => {
+  const user = users[req.cookies.user_id];
+  if (!user) {
+    res.status(401).send('You need to be logged in to view this page.');
+  } else {
+    res.render('urls_index', {
+      urls: urlDatabase,
+      user: user,
+    });
+  }
+});
+
+// Return a message for non-existing short URLs on '/u/:id'
+app.get('/u/:id', (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  if (longURL) {
+    res.redirect(longURL);
+  } else {
+    res.status(404).send('This short URL does not exist.');
+  }
+});
+
+// Allow only the owner to access '/urls/:id' and add checks for URL existence
+app.get('/urls/:id', (req, res) => {
+  const id = req.params.id;
+  const longURL = urlDatabase[id];
+  const user = users[req.cookies.user_id];
+
+  if (!user) {
+    res.status(401).send('You need to be logged in to view this page.');
+  } else if (!longURL) {
+    res.status(404).send('This URL does not exist.');
+  } else if (user.urls.indexOf(id) === -1) {
+    res.status(403).send("You don't have access to this URL.");
+  } else {
+    res.render('urls_show', { id, longURL, user });
+  }
+});
+
+// Redirect '/urls/new' to '/login' if the user is not logged in
+app.get('/urls/new', (req, res) => {
+  const user = users[req.cookies.user_id];
+  if (!user) {
+    res.redirect('/login');
+  } else {
+    res.render('urls_new', { user });
+  }
+});
+
+// Prevent non-logged-in users from creating URLs
+app.post('/urls', (req, res) => {
+  const user = users[req.cookies.user_id];
+  if (!user) {
+    res.status(401).send('You need to be logged in to create URLs.');
+  } else {
+    const { longURL } = req.body;
+    const shortURL = generateRandomString();
+    user.urls.push(shortURL);
+    urlDatabase[shortURL] = longURL;
+    res.redirect(`/urls/${shortURL}`);
+  }
+});
+
+// Prevent non-owners from editing URLs and add checks for URL existence
+app.post('/urls/:id', (req, res) => {
+  const id = req.params.id;
+  const longURL = urlDatabase[id];
+  const user = users[req.cookies.user_id];
+
+  if (!user) {
+    res.status(401).send('You need to be logged in to edit URLs.');
+  } else if (!longURL) {
+    res.status(404).send('This URL does not exist.');
+  } else if (user.urls.indexOf(id) === -1) {
+    res.status(403).send("You don't have access to edit this URL.");
+  } else {
+    const newLongURL = req.body.longURL;
+    urlDatabase[id] = newLongURL;
+    res.redirect('/urls');
+  }
+});
+
+// Prevent non-owners from deleting URLs and add checks for URL existence
+app.post('/urls/:id/delete', (req, res) => {
+  const id = req.params.id;
+  const longURL = urlDatabase[id];
+  const user = users[req.cookies.user_id];
+
+  if (!user) {
+    res.status(401).send('You need to be logged in to delete URLs.');
+  } else if (!longURL) {
+    res.status(404).send('This URL does not exist.');
+  } else if (user.urls.indexOf(id) === -1) {
+    res.status(403).send("You don't have access to delete this URL.");
+  } else {
+    delete urlDatabase[id];
+    res.redirect('/urls');
+  }
+});
+
+// Redirect '/login' and '/register' to '/urls' when a user is logged in
+app.get('/login', (req, res) => {
+  const user = users[req.cookies.user_id];
+  if (user) {
+    res.redirect('/urls');
+  } else {
+    const templateVars = {
+      user,
+      invalidLogin: false,
+    };
+    res.render('login', templateVars);
+  }
+});
+
+app.get('/register', (req, res) => {
+  const user = users[req.cookies.user_id];
+  if (user) {
+    res.redirect('/urls');
+  } else {
+    const templateVars = {
+      user,
+    };
+    res.render('register', templateVars);
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
