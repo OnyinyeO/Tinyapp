@@ -5,6 +5,28 @@ const { generateRandomString, getUserByEmail } = require('./helpers');
 
 const router = express.Router();
 
+// Middleware to check if user is logged in
+const requireLogin = (req, res, next) => {
+  if (users[req.session.user_id]) {
+    next();
+  } else {
+    res.redirect('/login');
+  }
+};
+
+// Middleware to check if user is already logged in
+const checkUserLoggedIn = (req, res, next) => {
+  if (users[req.session.user_id]) {
+    return res.redirect('/urls');
+  }
+  next();
+};
+
+router.use('/urls', requireLogin);
+router.use('/urls/:id', requireLogin);
+router.use('/login', checkUserLoggedIn);
+router.use('/register', checkUserLoggedIn);
+
 // Route to render the new URL creation form
 router.get('/urls/new', (req, res) => {
   res.render('urls_new', { user: users?.[req.session?.user_id] });
@@ -12,15 +34,12 @@ router.get('/urls/new', (req, res) => {
 
 // Root route to render the URLs index page
 router.get('/', (req, res) => {
-  res.render('urls_index', {
-    urls: [],
-    user: users?.[req.session?.user_id],
-  });
-});
-
-// Route to respond with a "Hello World" message
-router.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n');
+  const userId = req.session.user_id;
+  if (users[userId]) {
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login');
+  }
 });
 
 // Route to handle user logout
@@ -33,44 +52,47 @@ router.post('/logout', (req, res) => {
 router.get('/register', (req, res) => {
   const templateVars = {
     user: users?.[req.session?.user_id],
+    message: '',
   };
   res.render('register', templateVars);
 });
 
 // Route to handle user registration
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
   const { email, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 10);
   const userId = generateRandomString();
 
   // Validation checks for email and password
-  if (email === '' || password === '') {
-    res.status(400).send('Email and password cannot be empty');
-    return;
+  if (!email || !password) {
+    return res.render('register', {
+      message: 'Email and password cannot be empty',
+    });
   }
 
   const userEmail = email.toLowerCase();
-  const existingUser = getUserByEmail(userEmail);
+  const existingUser = getUserByEmail(userEmail, users);
   if (existingUser) {
-    return res.status(400).send('Email already exists');
+    return res.render('register', {
+      message: 'Email already exists',
+      user: undefined,
+    });
   }
 
   // Create a new user and store it in the users database
-  const newUser = {
+  users[userId] = {
     id: userId,
     email: userEmail,
     password: hashedPassword,
-    urls: [],
+    urls: {},
   };
 
-  users[userId] = newUser;
-
   // Save the updated users object to users.json
-  saveUsers(users);
+  await saveUsers(users);
 
   // Set a cookie for the user and redirect to the URLs page
   req.session['user_id'] = userId;
-  res.redirect('/urls');
+  return res.redirect('/urls');
 });
 
 // Route to render the login page
@@ -88,7 +110,7 @@ router.post('/login', (req, res) => {
   const { email, password } = req.body;
 
   // Check if the user exists and if the password is correct
-  const user = getUserByEmail(email.toLowerCase());
+  const user = getUserByEmail(email.toLowerCase(), users);
   if (!user || !user.password) {
     const templateVars = {
       message: 'Invalid email or password',
@@ -113,37 +135,36 @@ router.post('/login', (req, res) => {
 });
 
 // Route to handle URL editing
-router.post('/urls/:id/edit', (req, res) => {
+router.post('/urls/:id/edit', async (req, res) => {
   const user = users[req.session?.user_id];
   if (!user) {
     return res.status(401).send('You are not logged in');
   }
   const shortUrl = req.params.id;
-  const longUrl = req.body.longURL;
+  const longUrl = req.body.longUrl;
 
-  const url = user.urls.find((x) => x.shortUrl === shortUrl);
-  url[shortUrl] = longUrl;
-  users[req.session?.user_id].urls = user.urls.filter(
-    (x) => x.shortUrl === shortUrl
-  );
-
-  users[req.session?.user_id].urls.push(url);
+  if (user.urls[shortUrl]) {
+    user.urls[shortUrl].longUrl = longUrl;
+    await saveUsers(users);
+  }
 
   res.redirect('/urls');
 });
 
 // Route to handle URL creation
-router.post('/urls', (req, res) => {
+router.post('/urls', async (req, res) => {
   const { longURL } = req.body;
   const shortURL = generateRandomString();
   const userId = req.session.user_id;
 
-  if (users?.[userId]?.urls)
-    users[userId].urls.push({ shortUrl: shortURL, longUrl: longURL });
-  else users[userId] = { urls: [{ shortUrl: shortURL, longUrl: longURL }] };
+  if (!users[userId].urls) {
+    users[userId].urls = {};
+  }
+
+  users[userId].urls[shortURL] = { shortUrl: shortURL, longUrl: longURL };
 
   // Save users data to users.json file
-  saveUsers(users);
+  await saveUsers(users);
 
   res.redirect(`/urls`);
 });
@@ -158,11 +179,11 @@ router.get('/', (req, res) => {
   }
 });
 
-// Return a relevant error message on '/urls' if a user is not logged in
+// Redirect user to login page if they are not logged in
 router.get('/urls', (req, res) => {
   const user = users?.[req.session?.user_id];
   if (!user) {
-    res.status(401).send('You need to be logged in to view this page.');
+    res.redirect('/login');
   } else {
     res.render('urls_index', {
       urls: user.urls,
@@ -177,13 +198,13 @@ router.get('/urls/:id', (req, res) => {
   const user = users?.[req.session?.user_id];
 
   if (!user) {
-    return res.status(401).send('You need to be logged in to view this page.');
+    return res.redirect('/login');
   }
-  const url = user.urls.find((x) => x.shortUrl === shortUrl);
+  const url = user.urls[shortUrl];
   res.render('urls_show', {
     id: shortUrl,
     shortUrl,
-    longURL: url.longUrl,
+    longUrl: url.longUrl,
     user,
   });
 });
@@ -198,36 +219,20 @@ router.get('/urls/new', (req, res) => {
   }
 });
 
-// router.post('/urls/:id', (req, res) => {
-//   const id = req.params.id;
-//   const user = users?.[req.session?.user_id];
-
-//   if (!user) {
-//    return res.status(401).send('You need to be logged in to edit URLs.');
-//   } else if (!longURL) {
-//     res.status(404).send('This URL does not exist.');
-//   } else if (user.urls.indexOf(id) === -1) {
-//     res.status(403).send("You don't have access to edit this URL.");
-//   } else {
-//     const newLongURL = req.body.longURL;
-//     urlDatabase[id] = newLongURL;
-//     res.redirect('/urls');
-//   }
-// });
-
 // Prevent non-owners from deleting URLs and add checks for URL existence
-router.post('/urls/:id/delete', (req, res) => {
-  const id = req.params.id;
-
+router.post('/urls/:id/delete', async (req, res) => {
+  const shortUrl = req.params.id;
   const user = users?.[req.session?.user_id];
 
   if (!user) {
     return res.status(401).send('You need to be logged in to delete URLs.');
   }
-  users[req.session.user_id].urls = user.urls.filter(
-    ({ shortUrl }) => shortUrl !== id
-  );
-  saveUsers(users);
+
+  if (user.urls[shortUrl]) {
+    delete user.urls[shortUrl];
+  }
+
+  await saveUsers(users);
   res.redirect('/urls');
 });
 

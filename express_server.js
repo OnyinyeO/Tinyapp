@@ -12,15 +12,25 @@ app.use(
   session({
     name: 'session',
     keys: [process.env.SESSION_SECRET],
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
   })
 );
 
-// Load users from the file
-loadUsers();
+// Function to initialize the server
+const initializeServer = async () => {
+  try {
+    // Load users from the file
+    await loadUsers();
+    console.log('Users loaded');
 
-app.use('/', routes);
+    app.use('/', routes);
 
-app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}!`);
-});
+    app.listen(PORT, () => {
+      console.log(`App listening on port ${PORT}!`);
+    });
+  } catch (error) {
+    console.error('Error initializing server:', error);
+  }
+};
+
+initializeServer();

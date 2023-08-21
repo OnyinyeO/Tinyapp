@@ -40,6 +40,9 @@
       />
       <br />
       <button type="submit" class="btn btn-primary">Register</button>
+      <% if (message) { %>
+      <span class="nav-item nav-link" style="color: red"><%= message %></span>
+      <% } %>
     </form>
 
     <!-- Bootstrap JS -->
