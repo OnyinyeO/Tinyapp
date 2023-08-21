@@ -23,7 +23,8 @@
         </p>
     
       <div class="card-footer text-muted"></div>
-      <form method="POST" action="/urls/<%= id %>">
+      <% if(user) {%>
+      <form method="POST" action="/urls/<%= shortUrl %>/edit">
             <h4>Edit</h6>
           <label for="longURL">New URL:</label>
           <input
@@ -34,6 +35,8 @@
           />
           <button type="submit" class="btn btn-primary">Submit</button>
            </form>
+
+      <%}%>
     </div>
     <!-- Bootstrap JS -->
     <script

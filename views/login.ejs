@@ -49,9 +49,7 @@
       <br />
       <button type="submit" class="btn btn-primary">Login</button>
       <% if (invalidLogin) { %>
-      <span class="nav-item nav-link" style="color: red"
-        >Invalid email or password</span
-      >
+      <span class="nav-item nav-link" style="color: red"><%= message %></span>
       <% } %>
     </form>
 
