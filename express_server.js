@@ -39,29 +39,49 @@ const express = require('express');
 const app = express();
 const PORT = 8080; // default port 8080
 app.set('view engine', 'ejs');
+app.use(express.urlencoded({ extended: true }));
 
 const urlDatabase = {
   b2xVn2: 'http://www.lighthouselabs.ca',
   '9sm5xK': 'http://www.google.com',
 };
 
+const generateRandomString = (length) => {
+  let randomString = '';
+  const charset =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  for (let i = 0; i < length; i++) {
+    const random = Math.trunc(Math.random() * charset.length);
+    randomString += charset.charAt(random);
+  }
+  return randomString;
+};
+
 app.get('/', (req, res) => {
   res.send('Hello!');
 });
 
-// app.get('/hello', (req, res) => {
-//   res.send('<html><body>Hello <b>World</b></body></html>\n');
-// });
+app.get('/urls/new', (req, res) => {
+  res.render('urls_new');
+});
 
 app.get('/urls', (req, res) => {
   const url = { urls: urlDatabase };
   res.render('urls_index', url);
 });
 
-app.get('/urls/:id', (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  const templateVars = { id: req.params.id, longURL: longURL };
+app.get('/urls/:urlId', (req, res) => {
+  const longURLs = urlDatabase[req.params.urlId];
+  const templateVars = { id: req.params.urlId, longURL: longURLs };
+  console.log(templateVars);
   res.render('urls_show', templateVars);
+});
+
+app.post('/urls', (req, res) => {
+  const id = generateRandomString(6);
+  const longURL = req.body.longURL;
+  urlDatabase[`${id}`] = longURL;
+  res.redirect(`/urls/${id}`);
 });
 
 app.listen(PORT, () => {

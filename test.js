@@ -11,6 +11,33 @@ const namesOfPeople = [
   'adfads adfa ieaie888eqrew8qpweqwiejfqlknewfpqdifapdiofapdsiofnadopsfa',
 ];
 
+const generateRandomString = (length) => {
+  let randomString = '';
+  const charset =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+  for (let i = 0; i < length; i++) {
+    const random = Math.trunc(Math.random() * charset.length);
+    randomString += charset.charAt(random);
+  }
+  return randomString;
+};
+console.log(generateRandomString(6));
+
+const urlDabase = {
+  name: 'yyyy',
+  age: 30,
+};
+urlDabase.sex = false;
+const generateId = () => Math.random(1, 0.9);
+
+const id = generateId();
+const val = generateRandomString(6);
+
+age[`${id}`] = val;
+
+console.log(age);
+
 // const getAge = (names) => {
 //   for (let indexOfArray = 0; indexOfArray < names.length; indexOfArray++) {
 //     console.log(names[indexOfArray]);
@@ -21,14 +48,14 @@ const namesOfPeople = [
 // };
 // getAge(namesOfPeople);
 
-const getAges = (names) => {
-  for (let name of names) {
-    const personAge = age[name];
-    console.log(personAge);
-  }
-};
+// const getAges = (names) => {
+//   for (let name of names) {
+//     const personAge = age[name];
+//     console.log(personAge);
+//   }
+// };
 
-getAges(namesOfPeople);
+// getAges(namesOfPeople);
 
 //--------headers.ejs-------
 // <!-- <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
