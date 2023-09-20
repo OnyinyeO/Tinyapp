@@ -49,8 +49,19 @@ app.get('/', (req, res) => {
   res.send('Hello!');
 });
 
-app.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n');
+// app.get('/hello', (req, res) => {
+//   res.send('<html><body>Hello <b>World</b></body></html>\n');
+// });
+
+app.get('/urls', (req, res) => {
+  const url = { urls: urlDatabase };
+  res.render('urls_index', url);
+});
+
+app.get('/urls/:id', (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  const templateVars = { id: req.params.id, longURL: longURL };
+  res.render('urls_show', templateVars);
 });
 
 app.listen(PORT, () => {
