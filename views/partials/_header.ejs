@@ -14,31 +14,24 @@
     >
       <span class="navbar-toggler-icon"></span>
     </button>
-    <!-- Navigation bar content -->
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
-
-    <!-- Display the username if it exists -->
-    <% if (username) { %>
-    <div class="navbar-text">Welcome, <%= username %>!</div>
-    <% } %>
-
-    <!-- Add the login form here -->
-    <form class="form-inline" method="POST" action="/login">
-      <div class="form-group mx-sm-3">
-        <input
-          type="text"
-          class="form-control"
-          id="username"
-          name="username"
-          placeholder="Username"
-        />
+    <%if (!user) { %>
+    <a href="/login"> Login </a>
+    &nbsp; | &nbsp;
+    <a href="/register"> Register </a>
+    <% } else { %>
+    <form class="form-inline" action="/logout" method="post">
+      <div class="form-group mx-sm-3 mb-2">
+        <h4>Logged in as: <%= user.email %></h4>
       </div>
-      <button type="submit" class="btn btn-primary">Login</button>
+      <button type="submit" class="btn btn-outline-dark mb-2">Logout</button>
     </form>
+
+    <% } %>
   </nav>
 </header>
