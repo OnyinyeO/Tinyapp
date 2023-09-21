@@ -17,10 +17,11 @@
     <title>TinyApp</title>
   </head>
   <body>
-    <!-- Include header partial -->
-    <%- include ('partials/_header') %>
+    <header><%- include('../partials/_header') %></header>
+
     <main style="margin: 1em">
       <h3>My URLs</h3>
+
       <table class="table">
         <thead>
           <tr>
@@ -34,18 +35,23 @@
           <% for (let id in urls) { %>
           <tr>
             <td><%= id %></td>
-            <td><%= urls[id] %></td>
+            <td><%= urls[id].longURL %></td>
             <td>
-              <a href="/urls/<%= id %>/edit">Edit</a>
-             </td>
-             <td>
-    <form method="POST" action="/urls/<%= id %>/delete">
-      <button type="submit">Delete</button>
-             </form>
+              <form method="GET" action="/urls/<%=id%>">
+                <button type="submit" class="btn btn-outline-primary">
+                  Edit
+                </button>
+              </form>
+            </td>
+            <td>
+              <form method="POST" action="/urls/<%=id%>/delete">
+                <button type="submit" class="btn btn-outline-danger">
+                  Delete
+                </button>
+              </form>
             </td>
           </tr>
           <% } %>
-          </td>
         </tbody>
       </table>
     </main>

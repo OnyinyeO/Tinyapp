@@ -12,8 +12,8 @@
   </head>
 
   <body>
-    <!-- Include header partial -->
-    <%- include ('partials/_header') %>
+    <header><%- include('../partials/_header') %></header>
+
     <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
@@ -22,27 +22,28 @@
           Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
       </div>
-      <div class="card-footer text-muted">
-        <div>
-          <h4>Edit</h4>
-          <form method="POST" action="/urls/<%= id %>/edit">
-            <p>
-              New URL:
-              <span>
-                <input
-                  type="text"
-                  name="newLongURL"
-                  value="<%= longURL %>"
-                  placeholder="New Long URL"
-                />
-                <button type="submit">Submit</button>
-              </span>
-            </p>
-          </form>
+      <div class="card-footer text-muted"></div>
+    </div>
+    <h3 class="text-center">Edit</h3>
+    <form action="/urls/<%=id%>" method="POST">
+      <div class="input-group mb-3">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="New Url"
+          aria-label="newLongName"
+          name="newLongName"
+          aria-describedby="basic-addon2"
+          ,
+          value="<%= longURL %>"
+        />
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="submit">
+            submit
+          </button>
         </div>
       </div>
-    </div>
-
+    </form>
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
