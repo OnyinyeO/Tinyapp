@@ -13,44 +13,32 @@
     <title>Login</title>
   </head>
   <body>
-    <!-- Include header partial -->
-    <%- include('partials/_header') %>
-    <form style="margin: 1em" method="POST" action="/login">
-      <h1>Login</h1>
-      <div>
-        <label for="email">Email:</label>
+    <header><%- include('../partials/_header') %></header>
+    <form action="/login" method="post">
+      <h2>Login</h2>
+      <div class="form-group">
+        <label for="exampleInputEmail1">Email address</label>
         <input
-          class="form-control"
-          type="text"
-          name="email"
-          placeholder=" Enter email"
-          style="width: 300px"
           type="email"
-          id="email"
           name="email"
-          required
-        />
-      </div>
-      <br />
-      <div>
-        <label for="password">Password:</label>
-        <input
           class="form-control"
-          type="password"
-          name="password"
-          placeholder=" Password"
-          style="width: 300px"
-          type="password"
-          id="password"
-          name="password"
-          required
+          id="exampleInputEmail1"
+          aria-describedby="emailHelp"
+          placeholder="Enter email"
         />
       </div>
-      <br />
-      <button type="submit" class="btn btn-primary">Login</button>
-      <% if (invalidLogin) { %>
-      <span class="nav-item nav-link" style="color: red"><%= message %></span>
-      <% } %>
+      <div class="form-group">
+        <label for="exampleInputPassword1">Password</label>
+        <input
+          type="password"
+          name="password"
+          class="form-control"
+          id="exampleInputPassword1"
+          placeholder="Password"
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 
     <!-- Bootstrap JS -->
