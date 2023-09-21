@@ -73,7 +73,6 @@ app.get('/urls', (req, res) => {
 app.get('/urls/:urlId', (req, res) => {
   const longURLs = urlDatabase[req.params.urlId];
   const templateVars = { id: req.params.urlId, longURL: longURLs };
-  console.log(templateVars);
   res.render('urls_show', templateVars);
 });
 
@@ -82,6 +81,23 @@ app.post('/urls', (req, res) => {
   const longURL = req.body.longURL;
   urlDatabase[`${id}`] = longURL;
   res.redirect(`/urls/${id}`);
+});
+
+app.post('/urls/:id/delete', (req, res) => {
+  const idToDelete = req.params.id;
+  if (urlDatabase.hasOwnProperty(idToDelete)) {
+    delete urlDatabase[idToDelete];
+    res.redirect('/urls');
+  }
+});
+
+app.post('/urls/:id/edit', (req, res) => {
+  const idToEdit = req.params.id;
+  const newLongURL = req.body.newLongURL;
+  if (urlDatabase.hasOwnProperty(idToEdit)) {
+    urlDatabase[idToEdit] = newLongURL;
+    res.redirect('urls_show');
+  }
 });
 
 app.listen(PORT, () => {
