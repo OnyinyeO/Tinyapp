@@ -1,105 +1,191 @@
-// const express = require('express');
-// const session = require('cookie-session');
-// const { PORT } = require('./config');
-// const { loadUsers } = require('./data');
-// const routes = require('./routes');
-
-// const app = express();
-
-// app.set('view engine', 'ejs');
-// app.use(express.urlencoded({ extended: true }));
-// app.use(
-//   session({
-//     name: 'session',
-//     keys: [process.env.SESSION_SECRET],
-//     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-//   })
-// );
-
-// // Function to initialize the server
-// const initializeServer = async () => {
-//   try {
-//     // Load users from the file
-//     await loadUsers();
-//     console.log('Users loaded');
-
-//     app.use('/', routes);
-
-//     app.listen(PORT, () => {
-//       console.log(`App listening on port ${PORT}!`);
-//     });
-//   } catch (error) {
-//     console.error('Error initializing server:', error);
-//   }
-// };
-
-// initializeServer();
-
 const express = require('express');
+const cookieSession = require('cookie-session');
+const bcrypt = require('bcryptjs');
+const {
+  getUserByEmail,
+  generateRandomString,
+  urlsForUser,
+  isUserUrl,
+} = require('./helpers');
+const { users, urlDatabase } = require('./dbObjects');
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 3002;
+
+//define middlewares here
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
-
-const urlDatabase = {
-  b2xVn2: 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com',
-};
-
-const generateRandomString = (length) => {
-  let randomString = '';
-  const charset =
-    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  for (let i = 0; i < length; i++) {
-    const random = Math.trunc(Math.random() * charset.length);
-    randomString += charset.charAt(random);
-  }
-  return randomString;
-};
+app.use(
+  cookieSession({
+    name: 'session',
+    keys: ['key1', 'key2'],
+    // Cookie Options
+    maxAge: 10 * 60 * 1000, // 10 min
+  })
+);
 
 app.get('/', (req, res) => {
-  res.send('Hello!');
+  res.redirect('/login');
 });
 
-app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
-});
-
+//display existing urls
 app.get('/urls', (req, res) => {
-  const url = { urls: urlDatabase };
-  res.render('urls_index', url);
+  const userId = req.session.user_id;
+  if (!userId) {
+    return res.send('You need to log in first!');
+  }
+  const urlForUser = urlsForUser(userId, urlDatabase);
+
+  const templateVars = { urls: urlForUser, user: users[userId] };
+  res.render('pages/urls_index', templateVars);
 });
 
-app.get('/urls/:urlId', (req, res) => {
-  const longURLs = urlDatabase[req.params.urlId];
-  const templateVars = { id: req.params.urlId, longURL: longURLs };
-  res.render('urls_show', templateVars);
-});
-
+//create new urls and assign random 6 char id
 app.post('/urls', (req, res) => {
-  const id = generateRandomString(6);
-  const longURL = req.body.longURL;
-  urlDatabase[`${id}`] = longURL;
-  res.redirect(`/urls/${id}`);
+  const userId = req.session.user_id;
+  if (!userId) {
+    return res.send('You are not logged in. please log in and try again.');
+  }
+  const id = generateRandomString(); //generate a random 6 character string
+  urlDatabase[id] = { longURL: req.body.longURL, userID: userId }; //retrieve the longUrl & userId and add to urlDatabase object
+  res.redirect(`/urls/${id}`); //redirect to show short and long urls once short url has been generated
 });
 
+//create new urls
+app.get('/urls/new', (req, res) => {
+  const userId = req.session.user_id;
+  if (!userId) {
+    return res.redirect('/login');
+  }
+
+  const templateVars = { user: users[userId] };
+  res.render('pages/urls_new', templateVars);
+});
+
+//show a particular and update url if needed
+app.get('/urls/:id', (req, res) => {
+  const userId = req.session.user_id;
+  if (!userId) {
+    return res.send('You are not logged in!');
+  }
+
+  if (!isUserUrl(req.params.id, userId, urlDatabase)) {
+    return res.send('You are not authorized to perform this operation!');
+  }
+
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id].longURL,
+    user: users[userId],
+  };
+
+  res.render('pages/urls_show', templateVars);
+});
+
+//update an existing url and redirect to /Urls page
+app.post('/urls/:id', (req, res) => {
+  const userId = req.session.user_id;
+
+  if (!isUserUrl(req.params.id, userId, urlDatabase)) {
+    return res.send('You are not authorized to perform this operation!');
+  }
+
+  urlDatabase[req.params.id] = {
+    longURL: req.body.newLongName,
+    userID: userId,
+  };
+  res.redirect('/urls');
+});
+
+//launch actually long url
+app.get('/u/:id', (req, res) => {
+  const longURL = urlDatabase[req.params.id].longURL;
+  if (!longURL) {
+    return res.send('sorry, Url does not exist!');
+  }
+  res.redirect(longURL);
+});
+
+//delete existing url
 app.post('/urls/:id/delete', (req, res) => {
-  const idToDelete = req.params.id;
-  if (urlDatabase.hasOwnProperty(idToDelete)) {
-    delete urlDatabase[idToDelete];
+  const userId = req.session.user_id;
+
+  if (!isUserUrl(req.params.id, userId, urlDatabase)) {
+    return res.send('You are not authorized to perform the delete operation!');
+  }
+  delete urlDatabase[req.params.id]; //grap the id parameter and delete from the urlDatabase object
+  res.redirect('/urls'); //redirect to the /url api
+});
+
+// Register route
+app.get('/register', (req, res) => {
+  const userId = req.session.user_id;
+  if (userId) {
     res.redirect('/urls');
   }
+  const templateVars = { user: users[userId] };
+  res.render('pages/user_register', templateVars);
 });
 
-app.post('/urls/:id/edit', (req, res) => {
-  const idToEdit = req.params.id;
-  const newLongURL = req.body.newLongURL;
-  if (urlDatabase.hasOwnProperty(idToEdit)) {
-    urlDatabase[idToEdit] = newLongURL;
-    res.redirect('urls_show');
+// // API Register
+app.post('/register', (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).send('Invalid credentials!');
   }
+
+  const userExist = getUserByEmail(email, users);
+  if (userExist) {
+    return res.status(400).send('User already exist!');
+  }
+
+  const id = generateRandomString();
+  const hashedPassword = bcrypt.hashSync(password, 8);
+
+  users[id] = {
+    id,
+    email,
+    password: hashedPassword,
+  };
+
+  req.session.user_id = users[id].id;
+  res.redirect('/urls');
+});
+
+//login get route
+app.get('/login', (req, res) => {
+  const userId = req.session.user_id;
+  if (userId) {
+    res.redirect('/urls');
+  }
+  const templateVars = { user: users[userId] };
+  res.render('pages/user_login', templateVars);
+});
+
+//login post route
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  const user = getUserByEmail(email, users);
+  if (!user) {
+    return res.status(403).send('User does not exist!');
+  }
+
+  if (!bcrypt.compareSync(password, user.password)) {
+    return res.status(403).send('Invalid credentials!');
+  }
+  req.session.user_id = user.id;
+  res.redirect('/urls');
+});
+
+//logout
+app.post('/logout', (req, res) => {
+  req.session = null;
+  res.redirect('/login');
+});
+
+app.get('/urls.json', (req, res) => {
+  res.json(urlDatabase);
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`App listening on port ${PORT}`);
 });

@@ -1,24 +1,49 @@
-// const generateRandomString = () => {
-//   const characters =
-//     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-//   let result = '';
-//   for (let i = 0; i < 6; i++) {
-//     const randomIndex = Math.floor(Math.random() * characters.length);
-//     result += characters[randomIndex];
-//   }
-//   return result;
-// };
+const getUserByEmail = (email, database) => {
+  let foundUser = null;
+  for (const user in database) {
+    if (email === database[user].email) {
+      foundUser = database[user];
+      return foundUser;
+    }
+  }
+  return foundUser;
+};
 
-// const getUserByEmail = (email, users) => {
-//   for (const userId in users) {
-//     if (users[userId].email === email) {
-//       return users[userId];
-//     }
-//   }
-//   return null;
-// };
+function generateRandomString() {
+  let result = '';
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < 6) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return result;
+}
 
-// module.exports = {
-//   generateRandomString,
-//   getUserByEmail,
-// };
+const urlsForUser = (id, dbObject) => {
+  let urls = {};
+  for (const url in dbObject) {
+    if (dbObject[url].userID === id) {
+      urls[url] = dbObject[url];
+    }
+  }
+  return urls;
+};
+
+const isUserUrl = (shortUrl, id, dbObject) => {
+  for (const url in dbObject) {
+    if (dbObject[url].userID === id && url === shortUrl) {
+      return true;
+    }
+  }
+  return false;
+};
+
+module.exports = {
+  getUserByEmail,
+  generateRandomString,
+  urlsForUser,
+  isUserUrl,
+};

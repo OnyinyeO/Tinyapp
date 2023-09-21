@@ -21,5 +21,24 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
+
+    <!-- Display the username if it exists -->
+    <% if (username) { %>
+    <div class="navbar-text">Welcome, <%= username %>!</div>
+    <% } %>
+
+    <!-- Add the login form here -->
+    <form class="form-inline" method="POST" action="/login">
+      <div class="form-group mx-sm-3">
+        <input
+          type="text"
+          class="form-control"
+          id="username"
+          name="username"
+          placeholder="Username"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">Login</button>
+    </form>
   </nav>
 </header>
