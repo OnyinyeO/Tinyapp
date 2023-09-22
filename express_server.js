@@ -155,7 +155,7 @@ app.post('/register', (req, res) => {
 app.get('/login', (req, res) => {
   const userId = req.session.user_id;
   if (userId) {
-    res.redirect('/urls');
+    return res.redirect('/urls');
   }
   const templateVars = { user: users[userId] };
   res.render('pages/user_login', templateVars);
