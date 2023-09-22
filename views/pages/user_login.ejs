@@ -1,49 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Bootstrap CSS -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-    <title>URL - TinyApp Example</title>
-  </head>
 
+    <title>Login</title>
+  </head>
   <body>
     <header><%- include('../partials/_header') %></header>
-
-    <div class="card text-center">
-      <div class="card-header"></div>
-      <div class="card-body">
-        <h5 class="card-title">TinyURL for: <%= longURL %></h5>
-        <p class="card-text">
-          Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
-        </p>
-      </div>
-      <div class="card-footer text-muted"></div>
-    </div>
-    <h3 class="text-center">Edit</h3>
-    <form action="/urls/<%=id%>" method="POST">
-      <div class="input-group mb-3">
+    <main style="margin: 1em">
+    <form action="/login" method="post">
+      <h2>Login</h2>
+      <div class="form-group">
+        <label for="exampleInputEmail1">Email address</label>
         <input
-          type="text"
+          type="email"
+          name="email"
           class="form-control"
-          placeholder="New Url"
-          aria-label="newLongName"
-          name="newLongName"
-          aria-describedby="basic-addon2"
-          ,
-          value="<%= longURL %>"
+          id="exampleInputEmail1"
+          aria-describedby="emailHelp"
+          placeholder="Enter email"
         />
-        <div class="input-group-append">
-          <button class="btn btn-outline-secondary" type="submit">
-            submit
-          </button>
-        </div>
       </div>
+      <div class="form-group">
+        <label for="exampleInputPassword1">Password</label>
+        <input
+          type="password"
+          name="password"
+          class="form-control"
+          id="exampleInputPassword1"
+          placeholder="Password"
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary">Submit</button>
     </form>
+<main>
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

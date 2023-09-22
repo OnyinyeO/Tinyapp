@@ -9,7 +9,7 @@ const {
 } = require('./helpers');
 const { users, urlDatabase } = require('./dbObjects');
 const app = express();
-const PORT = 3002;
+const PORT = 8080;
 
 //define middlewares here
 app.set('view engine', 'ejs');
@@ -46,8 +46,8 @@ app.post('/urls', (req, res) => {
     return res.send('You are not logged in. please log in and try again.');
   }
   const id = generateRandomString(); //generate a random 6 character string
-  urlDatabase[id] = { longURL: req.body.longURL, userID: userId }; //retrieve the longUrl & userId and add to urlDatabase object
-  res.redirect(`/urls/${id}`); //redirect to show short and long urls once short url has been generated
+  urlDatabase[id] = { longURL: req.body.longURL, userID: userId };
+  res.redirect(`/urls/${id}`);
 });
 
 //create new urls
@@ -100,7 +100,7 @@ app.post('/urls/:id', (req, res) => {
 app.get('/u/:id', (req, res) => {
   const longURL = urlDatabase[req.params.id].longURL;
   if (!longURL) {
-    return res.send('sorry, Url does not exist!');
+    return res.send('Url does not exist!');
   }
   res.redirect(longURL);
 });
@@ -113,7 +113,7 @@ app.post('/urls/:id/delete', (req, res) => {
     return res.send('You are not authorized to perform the delete operation!');
   }
   delete urlDatabase[req.params.id]; //grap the id parameter and delete from the urlDatabase object
-  res.redirect('/urls'); //redirect to the /url api
+  res.redirect('/urls');
 });
 
 // Register route

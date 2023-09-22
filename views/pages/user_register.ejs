@@ -3,19 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Bootstrap CSS -->
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-
-    <title>Login</title>
+    <title>User Registration</title>
   </head>
   <body>
     <header><%- include('../partials/_header') %></header>
-    <form action="/login" method="post">
-      <h2>Login</h2>
+     <main style="margin: 1em">
+    <form action="/register" method="post">
+      <h2>Create Account</h2>
       <div class="form-group">
         <label for="exampleInputEmail1">Email address</label>
         <input
@@ -40,7 +42,7 @@
 
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
-
+<main>
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

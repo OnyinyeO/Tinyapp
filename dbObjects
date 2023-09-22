@@ -13,7 +13,7 @@ const users = {
 
 const urlDatabase = {
   b6UTxQ: {
-    longURL: 'https://www.tsn.ca',
+    longURL: 'https://www.lighthouse.com',
     userID: 'k7dso4',
   },
   i3BoGr: {
